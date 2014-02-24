@@ -243,9 +243,9 @@ class Object
                 $newData .= substr($Delta, $Pos, $opCode);
                 $Pos += $opCode;    
             }
-
-            $this->mData = $newData;
         }
+
+        $this->mData = $newData;
     }
 
     public function getObjectHash()
