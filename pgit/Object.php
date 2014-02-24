@@ -66,7 +66,6 @@ class Object
         {
             if( ($Pack = Object::findPackedObject($Repo, $objectHash)) !== false )
             {
-                // TODO: Verify pack integrity before using it
                 list($packName, $Offset, $objHash) = $Pack;
                 $Obj = Object::unpackObject($Repo, $packName, $Offset);
                 $Obj->mObjectHash = $objHash;
@@ -170,16 +169,22 @@ class Object
 
     private static function findPackedObject($Repo, $objectHash)
     {
-        // TODO: Verify pack index file integrity before using
-
         $packFiles = $Repo->getPackFiles();
-        foreach( $packFiles as $Pack )
+        foreach( $packFiles as &$Pack )
         {
             $packIndexFile  = $Repo->getRepoPath() . "/objects/pack/pack-$Pack.idx";
             $fpIdx          = fopen($packIndexFile, 'rb');
 
             if( !$fpIdx ) continue;
 
+            fseek($fpIdx, -20, SEEK_END);
+            $Size = ftell($fpIdx);
+            $Hash = readSHA1($fpIdx);
+            
+            if( $Hash != SHA::hashFileData($fpIdx, $Size) )
+                throw new \Exception('Pack index file is corrupt');
+            
+            rewind($fpIdx);
             list($curr, $after) = Object::readFanout($fpIdx, $objectHash, 8);
             if( $curr == $after )
                 continue;
