@@ -42,6 +42,16 @@ class Blob extends Object
         if( $this->mBlobHash != $this->mObjectHash )
             throw new \Exception("Blob is corrupt");
     }
+
+    public function applyDelta($Delta)
+    {
+        // we override Object::applyDelta to calculate the correct
+        // hash and set mBlobContent:
+
+        parent::applyDelta($Delta);
+        $this->mBlobContent = $this->mData;
+        $this->mBlobHash    = SHA::hashStr('blob ' . strlen($this->mData) . "\0" . $this->mData);
+    }
     
     public function getBlobContent()
     {
