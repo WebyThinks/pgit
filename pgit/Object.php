@@ -79,6 +79,22 @@ class Object
 
         return null;
     }
+    
+    private static function readCompressedData($fpPack, $uncompressedSize)
+    {
+        // Git stores the size of the uncompressed data, not the compressed size.
+        // So we need to keep feeding it data until we get a valid object. We
+        // will do this in 32 byte chunks.
+        $compressedData     = fread($fpPack, $uncompressedSize);
+        $uncompressedData   = '';
+
+        while( ($uncompressedData = @gzuncompress($compressedData, $uncompressedSize)) === false )
+        {
+            $compressedData = fread($fpPack, 32);
+            if( $compressedData === false ) break;
+        }
+        return $uncompressedData;
+    }
 
     private static function unpackObject($Repo, $packName, $Offset)
     {
@@ -104,15 +120,16 @@ class Object
         $Object = null;
         switch( $Type )
         {
-            case Object::TYPE_COMMIT:       $Object = new Commit($Repo, gzuncompress(fread($fpPack, $Size+512), $Size), true);    break;
-            case Object::TYPE_TREE:         $Object = new Tree($Repo, gzuncompress(fread($fpPack, $Size+512), $Size), true);      break;
-            case Object::TYPE_BLOB:         $Object = new Blob($Repo, gzuncompress(fread($fpPack, $Size+512), $Size), true);      break;
+            case Object::TYPE_COMMIT:       $Object = new Commit($Repo, Object::readCompressedData($fpPack, $Size), true);      break;
+            case Object::TYPE_TREE:         $Object = new Tree($Repo,   Object::readCompressedData($fpPack, $Size), true);      break;
+            case Object::TYPE_BLOB:         $Object = new Blob($Repo,   Object::readCompressedData($fpPack, $Size), true);      break;
 
             case Object::TYPE_OFS_DELTA:
             {
-                $Buf         = fread($fpPack, $Size + 512 + 20);
-                $Pos         = 0;
-                $deltaOffset = -1; 
+                $Buf            = fread($fpPack, $Size);
+                $Cnt            = 0;
+                $Pos            = 0;
+                $deltaOffset    = -1; 
 
                 do
                 {
@@ -121,10 +138,18 @@ class Object
                     $deltaOffset = ($deltaOffset << 7) + ($Bits & 0x7F);
                 } while( $Bits & 0x80 );
 
-                $Delta = gzuncompress(substr($Buf, $Pos), $Size);
+                $deltaBuffer = substr($Buf, $Pos);
+
+                // Again we don't know the length of the compressed data so we will
+                // keep adding 32 byte chunks until we get a valid object
+                while( ($Delta = @gzuncompress($deltaBuffer, $Size)) === false )
+                {
+                    $deltaBuffer .= fread($fpPack, 32);
+                    if( $deltaBuffer === false ) break;
+                }
 
                 $baseOffset = $Offset - $deltaOffset;
-                $Object = Object::unpackObject($Repo, $packName, $baseOffset);                
+                $Object     = Object::unpackObject($Repo, $packName, $baseOffset);                
                 $Object->applyDelta($Delta);
             }
             break;
