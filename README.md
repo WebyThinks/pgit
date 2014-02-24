@@ -9,6 +9,7 @@ PGit is a library for accessing Git repositories written in pure PHP. Instead of
 ### Features
  * Pure PHP 5 object-oriented implementation.
  * Can read Commit, Tree, and Blob objects.
+ * Supports reading from pack files and applying OFS deltas.
  * Verifies all hashes for consistency checks.
  * Open-Source and free for commercial and personal use.
  
@@ -17,7 +18,7 @@ The API is VERY far from being stable and will change a lot over time.
 
 ### Limitations
  * Since PGit is very early in it's development, many things are not yet implemented.
- * Missing support for packs
+ * Missing support for ref deltas
  
 ### Contributing
 I would like to encourage anyone to contribute any sort of code, suggestions, or issue reports. 
