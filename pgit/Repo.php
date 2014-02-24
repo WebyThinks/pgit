@@ -95,7 +95,7 @@ class Repo
             while( ($File = readdir($dirHandle)) !== false )
             {
                 if (preg_match('#^pack-([0-9a-fA-F]{40})\.idx$#', $File, $Hash))
-                    $this->mPacks[] = $Hash[1];
+                    $this->mPacks[] = array('fileName' => $Hash[1], 'hash' => '');
             }
         }
     }

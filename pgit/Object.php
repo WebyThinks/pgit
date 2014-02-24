@@ -64,19 +64,47 @@ class Object
         }
         else
         {
-            if( ($Pack = Object::findPackedObject($Repo, $objectHash)) !== false )
+            if( ($packData = Object::findPackedObject($Repo, $objectHash)) !== false )
             {
-                list($packName, $Offset, $objHash) = $Pack;
-                $Obj = Object::unpackObject($Repo, $packName, $Offset);
-                $Obj->mObjectHash = $objHash;
-                $Obj->Verify();
+                list($Pack, $Offset, $objHash) = $packData;
+                $packHash = Object::verifyPackFile($Repo, $Pack);
 
-                unset($Obj->mData);
-                return $Obj;
+                // First we check that the pack file's hash is valid
+                if( $packHash === false )
+                    throw new \Exception('Pack file is corrupt');
+
+                // Now we check that the hash matches the one in the pack index
+                if( $packHash != $Pack['hash'] )
+                    throw new \Exception('Pack file is corrupt');
+    
+                $Object                 = Object::unpackObject($Repo, $Pack['fileName'], $Offset);
+                $Object->mObjectHash    = $objHash;
+                $Object->Verify();
+
+                unset($Object->mData);
+                return $Object;
             }
         }
 
         return null;
+    }
+
+    private static function verifyPackFile($Repo, $Pack)
+    {
+        $fpPack = fopen($Repo->getRepoPath() . '/objects/pack/pack-' . $Pack['fileName'] . '.pack', 'rb');
+        if( !$fpPack )
+            return false;
+
+        fseek($fpPack, -20, SEEK_END);
+        $Size = ftell($fpPack);
+        $validHash  = readSHA1($fpPack);
+        $packHash   = SHA::hashFileData($fpPack, $Size);
+
+        fclose($fpPack);
+        if( $validHash == $packHash )
+            return $packHash;
+
+        return false;
     }
     
     private static function readCompressedData($fpPack, $uncompressedSize)
@@ -172,19 +200,19 @@ class Object
         $packFiles = $Repo->getPackFiles();
         foreach( $packFiles as &$Pack )
         {
-            $packIndexFile  = $Repo->getRepoPath() . "/objects/pack/pack-$Pack.idx";
+            $packIndexFile  = $Repo->getRepoPath() . '/objects/pack/pack-' . $Pack['fileName'] . '.idx';
             $fpIdx          = fopen($packIndexFile, 'rb');
 
             if( !$fpIdx ) continue;
 
-            fseek($fpIdx, -20, SEEK_END);
-            $Size = ftell($fpIdx);
-            $Hash = readSHA1($fpIdx);
-            
-            if( $Hash != SHA::hashFileData($fpIdx, $Size) )
+            fseek($fpIdx, -40, SEEK_END);
+            $Size           = ftell($fpIdx) + 20;
+            $Pack['hash']   = readSHA1($fpIdx);
+            $idxHash        = readSHA1($fpIdx);
+
+            if( $idxHash != SHA::hashFileData($fpIdx, $Size) )
                 throw new \Exception('Pack index file is corrupt');
             
-            rewind($fpIdx);
             list($curr, $after) = Object::readFanout($fpIdx, $objectHash, 8);
             if( $curr == $after )
                 continue;
