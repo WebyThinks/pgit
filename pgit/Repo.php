@@ -25,13 +25,6 @@ function readSHA1($fp)
     return unpack('H40', fread($fp, 20))[1];
 }
 
-function readInt64($fp)
-{
-    // PHP doesn't have differen't integer sizes, on a 32Bit platform this will be truncated
-    // to 32-Bit, on 64-Bit it should be able to support the full size (signed only).
-    return (int)unpack('N', fread($fp, 8))[1];
-}
-
 function sha1bin($Hash)
 {
     return pack('H40', $Hash);

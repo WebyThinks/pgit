@@ -236,7 +236,7 @@ class Object
 
             // seek to the object's place in the offset table
             fseek($fpIdx, 8 + 4 * 256 + 24 * $totalObjects + 4 * $i);
-            $Offset = readInt64($fpIdx);
+            $Offset = readInt32($fpIdx);
 
             fclose($fpIdx);
 
