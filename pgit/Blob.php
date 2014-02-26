@@ -31,10 +31,12 @@ class Blob extends Object
             }
 
             $Offset = $i + 1;
+            $this->mBlobHash    = SHA::hashStr($this->mData);
         }
-        
+        else
+            $this->mBlobHash    = SHA::hashStr('blob ' . strlen($this->mData) . "\0" . $this->mData);
+
         $this->mBlobContent = substr($this->mData, $Offset);
-        $this->mBlobHash    = SHA::hashStr($this->mData);
     }
 
     public function Verify()
