@@ -1,7 +1,7 @@
 <?php
 /************************************************************\
 * PGit - PHP Git Implementation                              *
-*   http://github.com/jeremyharmon/pgit                      *
+*   http://github.com/zordtk/pgit                            *
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
 
