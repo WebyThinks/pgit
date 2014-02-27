@@ -9,12 +9,12 @@ namespace PGit;
 
 class Tree extends Object
 {
+    private $mEntryData;
+
     public function __construct($Repo, $Data, $isFromPack)
     {
         $this->mObjectType = Object::TYPE_TREE;
         parent::__construct($Repo, $Data);
-
-        $entryData = $Data;
 
         if( !$isFromPack )
         {
@@ -27,24 +27,38 @@ class Tree extends Object
                     break;
             }
 
-            $Len            = substr($this->mData, 5, $i-5);
-            $entryData      = substr($this->mData, $i+1, strlen($this->mData)-$i);
+            $Len                = substr($this->mData, 5, $i-5);
+            $this->mEntryData   = substr($this->mData, $i+1, strlen($this->mData)-$i);
         }
+        else
+            $this->mEntryData = $Data;
 
+        $this->parseTreeEntries();
+    }
+
+    public function applyDelta($Delta)
+    {
+        parent::applyDelta($Delta);
+        $this->mEntryData = $this->mData;
+        $this->parseTreeEntries();
+    }
+
+    private function parseTreeEntries()
+    {
         $this->mEntries = array();
         $Idx            = 0;
         $Pos            = 0;
 
-        while( $Idx < strlen($entryData) )
+        while( !empty($this->mEntryData) )
         {
-            if( $entryData[$Idx] == "\0" )
+            if( $this->mEntryData[$Idx++] == "\0" )
             {
-                $Idx            += 20;
-                $entryLine       = substr($entryData, $Pos, $Idx+1);
-                $Pos             = $Idx+1;
+                $entryLine          = substr($this->mEntryData, 0, $Idx + 20);
+                $this->mEntryData   = substr($this->mEntryData, strlen($entryLine));
+                $Idx = 0;
+
                 $Entry['mode']   = substr($entryLine, 0, strpos($entryLine, ' '));
 
-                $i = 0;                
                 for( $i=strlen($Entry['mode']); $i<strlen($entryLine); $i++ )
                 {
                     if( $entryLine[$i] == "\0" )
@@ -56,12 +70,12 @@ class Tree extends Object
                 $Entry['type']      = ( $Entry['mode'] == 40000 ? Object::TYPE_TREE : Object::TYPE_BLOB );
                 $this->mEntries[]   = $Entry;
             }
-            else
-                $Idx++;
         }
+
+        unset($this->mEntryData);
     }
 
-    public function getEntries()
+    public function getTreeEntries()
     {
         return $this->mEntries;
     }
