@@ -116,7 +116,7 @@ class Object
 
         while( ($uncompressedData = @gzuncompress($compressedData, $uncompressedSize)) === false )
         {
-            $compressedData = fread($fpPack, 32);
+            $compressedData .= fread($fpPack, 32);
             if( $compressedData === false ) break;
         }
         return $uncompressedData;
