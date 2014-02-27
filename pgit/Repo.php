@@ -166,7 +166,7 @@ class Repo
 
     public function getObjectFromPath($Path)
     {
-        if( ($Obj = $this->lookupPath($Path)) )
+        if( ($Obj = $this->lookupPath($Path)) !== false )
             return Object::Open($this, $Obj->getHash());
         return false;
     }
