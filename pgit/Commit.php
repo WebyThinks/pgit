@@ -15,13 +15,12 @@ class Commit extends Object
     private $mParentHashes = array();
     private $mCommitter;
     private $mMessage;
+    private $mCommitData;
 
     public function __construct($Repo, $Data, $isFromPack)
     {
         $this->mObjectType = Object::TYPE_COMMIT;
         parent::__construct($Repo, $Data);
-
-        $Commit = $Data;
 
         if( !$isFromPack )
         {
@@ -35,11 +34,25 @@ class Commit extends Object
                     break;
             }
 
-            $commitLen  = substr($this->mData, 7, $i-7);
-            $Commit     = substr($this->mData, 8+strlen($commitLen));
+            $commitLen          = substr($this->mData, 7, $i-7);
+            $this->mCommitData  = substr($this->mData, 8+strlen($commitLen));
         }
+        else
+            $this->mCommitData = $Data;
 
-        $Lines      = explode("\n", $Commit);
+        $this->parseCommit();
+    }
+
+    public function applyDelta($Delta)
+    {
+        parent::applyDelta($Delta);
+        $this->mCommitData = $this->mData;
+        $this->parseCommit();
+    }
+
+    protected function parseCommit()
+    {
+        $Lines = explode("\n", $this->mCommitData);
 
         for( $i=0; $i<count($Lines); $i++ )
         {
@@ -73,6 +86,7 @@ class Commit extends Object
         }
 
         $this->mMessage = implode(array_slice($Lines, 4, count($Lines) - 5), "\n");
+        unset($this->mCommitData);
     }
 
     public function getAuthor()
