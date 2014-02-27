@@ -12,6 +12,7 @@ PGit is a library for accessing Git repositories written in pure PHP. Instead of
  * Supports reading from pack files and applying OFS deltas.
  * Verifies all hashes for consistency checks.
  * Open-Source and free for commercial and personal use.
+ * Test suite to help protect against regressions.
  
 ### Warning
 The API is VERY far from being stable and will change a lot over time.
