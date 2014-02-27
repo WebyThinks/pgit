@@ -12,17 +12,20 @@ require_once('SHA.php');
 
 function readInt32($fp)
 {
-    return unpack('N', fread($fp, 4))[1];
+    $n = unpack('N', fread($fp, 4));
+    return $n[1];
 }
 
 function readInt16($fp)
 {
-    return unpack('n', fread($fp, 2))[1];
+    $n = unpack('n', fread($fp, 2));
+    return $n[1];
 }
 
 function readSHA1($fp)
 {
-    return unpack('H40', fread($fp, 20))[1];
+	$n = unpack('H40', fread($fp, 20));
+	return $n[1];
 }
 
 function sha1bin($Hash)
