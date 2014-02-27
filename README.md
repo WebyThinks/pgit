@@ -3,6 +3,8 @@ PGit PHP Git Library
 
 PGit is a library for accessing Git repositories written in pure PHP. Instead of using the normal fork-exec to query git repositories, PGit reads git's object files directly. The PGit library is licensed under the MIT and is free for commercial and personal use.
 
+[![Build Status](https://travis-ci.org/zordtk/pgit.png?branch=master)](https://travis-ci.org/zordtk/pgit)
+
 ### Requirements
  * Only PHP v5.3 or greater
  
