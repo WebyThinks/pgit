@@ -11,9 +11,13 @@ require_once('Object.php');
 class Commit extends Object
 {
     private $mAuthor;
+    private $mAuthorEmail;
+    private $mAuthorDate;
+    private $mCommitter;
+    private $mCommitterEmail;
+    private $mCommitDate;
     private $mTreeHash;
     private $mParentHashes = array();
-    private $mCommitter;
     private $mMessage;
     private $mCommitData;
 
@@ -39,7 +43,6 @@ class Commit extends Object
         }
         else
             $this->mCommitData = $Data;
-
         $this->parseCommit();
     }
 
@@ -75,17 +78,35 @@ class Commit extends Object
                         break;
 
                     case 'author':
-                        $this->mAuthor = $Value;
-                        break;
+                    {
+                    	$this->mAuthor = $Value;
+                    	
+                    	if(preg_match('/^(.+?)\s+<(.+?)>\s+(\d+)\s+([+-]\d{4})$/', $Value, $Matches))
+                    	{
+                    		$this->mAuthor 		= $Matches[1];	
+                    		$this->mAuthorEmail	= $Matches[2];
+                    		$this->mAuthorDate	= $Matches[3];
+                    	}
+                    }
+                    break;
 
                     case 'committer':
+                    {
                         $this->mCommitter = $Value;
-                        break;
+
+                        if(preg_match('/^(.+?)\s+<(.+?)>\s+(\d+)\s+([+-]\d{4})$/', $Value, $Matches))
+                        {
+                        	$this->mCommitter 		= $Matches[1];
+                        	$this->mCommitterEmail	= $Matches[2];
+                        	$this->mCommitDate		= $Matches[3];
+                        }
+                    }
+                    break;
                 }
             }
         }
 
-        $this->mMessage = implode(array_slice($Lines, 4, count($Lines) - 5), "\n");
+        $this->mMessage = implode(array_slice($Lines, 5, count($Lines) - 6), "\n");
         unset($this->mCommitData);
     }
 
@@ -93,12 +114,32 @@ class Commit extends Object
     {
         return $this->mAuthor;
     }
+    
+    public function getAuthorEmail()
+    {
+    	return $this->mAuthorEmail;
+    }
+    
+    public function getAuthorDate()
+    {
+    	return $this->mAuthorDate;
+    }
 
     public function getCommitter()
     {
         return $this->mCommitter;
     }
 
+    public function getCommitterEmail()
+    {
+    	return $this->mCommitterEmail;
+    }
+
+    public function getCommitDate()
+    {
+        return $this->mCommitDate;
+    }
+    
     public function getParentHashes()
     {
         return $this->mParentHashes;
