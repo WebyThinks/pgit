@@ -5,7 +5,7 @@
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
 
-function __autoload($Class)
+function autoLoadPGit($Class)
 {
 	switch( $Class )
 	{
@@ -34,5 +34,7 @@ function __autoload($Class)
 		break;
 	}
 }
+
+spl_autoload_register('autoLoadPGit');
 
 ?>
