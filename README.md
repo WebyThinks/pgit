@@ -21,6 +21,7 @@ The API is VERY far from being stable and will change a lot over time.
 
 ### Limitations
  * Since PGit is very early in it's development, many things are not yet implemented.
+ * Doesn't support 64-Bit offsets in pack files. Most pack files aren't going to be this large, even the linux kernel is only ~750MB.
  * Missing support for ref deltas
  
 ### Contributing
