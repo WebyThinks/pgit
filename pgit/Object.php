@@ -6,10 +6,6 @@
 \************************************************************/
 namespace PGit;
 
-require_once('Blob.php');
-require_once('Commit.php');
-require_once('Tree.php');
-
 class Object
 {
     const TYPE_COMMIT       = 1;
@@ -33,7 +29,7 @@ class Object
     public static function Open($Repo, $objectHash)
     {
         if( empty($objectHash) )
-            throw new \Exception('Object hash is empty');
+            return false;
 
         $Prefix     = substr($objectHash, 0, 2);
         $Remaining  = substr($objectHash, 2);
@@ -44,7 +40,7 @@ class Object
             $Data           = gzuncompress(file_get_contents($Path));
             $objectType     = substr($Data, 0, strpos($Data, ' '));
 
-            $Object = null;
+            $Object = false;
             if( $objectType == 'blob' )
                 $Object = new Blob($Repo, $Data, false);
             else if( $objectType == 'commit' )
@@ -53,7 +49,7 @@ class Object
                 $Object = new Tree($Repo, $Data, false);
 
             if( !is_object($Object) )
-                throw new \Exception("Unsupported object type $objectType");
+                throw new \Exception("Invalid object type: $objectType");
 
             $Object->mObjectHash = $objectHash;
             $Object->Verify();
@@ -70,11 +66,11 @@ class Object
 
                 // First we check that the pack file's hash is valid
                 if( $packHash === false )
-                    throw new \Exception('Pack file is corrupt');
+                    throw new InvalidHash($Path);
 
                 // Now we check that the hash matches the one in the pack index
                 if( $packHash != $Pack['hash'] )
-                    throw new \Exception('Pack file is corrupt');
+                    throw new InvalidHash($Path);
     
                 $Object                 = Object::unpackObject($Repo, $Pack['fileName'], $Offset);
                 $Object->mObjectHash    = $objHash;
@@ -85,7 +81,7 @@ class Object
             }
         }
 
-        return null;
+        return false;
     }
 
     private static function verifyPackFile($Repo, $Pack)
@@ -128,7 +124,7 @@ class Object
         $Magic  = fread($fpPack, 4);
         
         if( $Magic != 'PACK' )
-            throw new \Exception('Invalid pack file');
+            throw new InvalidObject($packName . '.pack');
 
         fseek($fpPack, $Offset);
 
@@ -210,7 +206,7 @@ class Object
             $idxHash        = readSHA1($fpIdx);
 
             if( $idxHash != SHA::hashFileData($fpIdx, $Size) )
-                throw new \Exception('Pack index file is corrupt');
+                throw new InvalidHash($packIndexFile);
             
             list($curr, $after) = Object::readFanout($fpIdx, $objectHash, 8);
             if( $curr == $after )

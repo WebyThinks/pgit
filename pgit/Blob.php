@@ -21,7 +21,7 @@ class Blob extends Object
         if( !$isFromPack )
         {
             if( substr($this->mData, 0, 4) != 'blob' )
-                throw new \Exception("$File is not a valid blob object");
+                throw new InvalidObject($this->mObjectHash);
 
             // Read size
             for( $i=5; $i<strlen($this->mData)-4; $i++ )
@@ -42,7 +42,7 @@ class Blob extends Object
     public function Verify()
     {       
         if( $this->mBlobHash != $this->mObjectHash )
-            throw new \Exception("Blob is corrupt");
+            throw new InvalidHash($this->mObjectHash);
     }
 
     public function applyDelta($Delta)

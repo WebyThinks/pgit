@@ -19,7 +19,7 @@ class Tree extends Object
         if( !$isFromPack )
         {
             if( substr($this->mData, 0, 4) != 'tree' )
-                throw new \Exception("$this->mObjectHash is not a valid tree object");
+                throw new InvalidObject($this->mObjectHash);
 
             for( $i=5; $i<strlen($this->mData); $i++ )
             {

@@ -32,6 +32,14 @@ function autoLoadPGit($Class)
 		case 'PGit\Tree':
 			require_once(__DIR__ . '/pgit/Tree.php');
 		break;
+
+        case 'PGit\InvalidHash':
+            require_once(__DIR__ . '/pgit/Error.php');
+        break;
+
+        case 'PGit\InvalidObject':
+            require_once(__DIR__ . '/pgit/Error.php');
+        break;
 	}
 }
 

@@ -143,7 +143,7 @@ class Repo
         $headRef = file_get_contents($this->mRepoPath . '/HEAD');
 
         if( substr($headRef, 0, 4) != 'ref:' )
-            throw new \Exception('Invalid or unsupported HEAD format');
+            throw new InvalidObject('HEAD');
 
         $headRef     = trim(substr($headRef, 5));
         return $this->getRef($headRef);
@@ -252,7 +252,7 @@ class Repo
         $shaHash  = readSHA1($fpIndex);
 
         if( $shaHash != SHA::hashFileData($fpIndex, $fileSize) )
-            throw new \Exception('Corrupted index file!');
+            throw new InvalidHash("Index file's hash is invalid");
     }
 
     private function lookupPath($Path)

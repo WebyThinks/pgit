@@ -6,8 +6,6 @@
 \************************************************************/
 namespace PGit;
 
-require_once('Object.php');
-
 class Commit extends Object
 {
     private $mAuthor;
@@ -30,7 +28,7 @@ class Commit extends Object
         {
 
             if( substr($this->mData, 0, 6) != 'commit' )
-                throw new \Exception("$this->mObjectHash is not a valid commit object");
+                throw new InvalidObject($this->mObjectHash);
 
             for( $i=7; $i<strlen($this->mData); $i++ )
             {
