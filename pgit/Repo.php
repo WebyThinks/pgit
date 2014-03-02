@@ -5,15 +5,38 @@
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
 
+/**
+ * Contains the Repo implementation
+ */
+
+
 namespace PGit;
 
 require_once('Binary.php');
 
+/**
+ * The Repo class represents a Git repository.
+ *
+ * Repo is the main object in PGit that you will use to read information
+ * such as the head commit in a given ref, or a object from the repository.
+ */
 class Repo
 {
+    /**
+     * Full path to the repository directory.
+     */
     private $mRepoPath;
+
+    /**
+     * List of pack files found.
+     */
     private $mPacks = array();
 
+    /**
+     * Opens the repository and scans for pack files.
+     *
+     * @param string $Path Path to the repository
+     */
     private function __construct($Path)
     {
         $this->mRepoPath = $Path;
@@ -30,11 +53,22 @@ class Repo
         }
     }
 
+    /** 
+     * Get the list of pack files for the repository.
+     * 
+     * @return array Pack files
+     */
     public function getPackFiles()
     {
         return $this->mPacks;
     }
 
+    /**
+     * Get the tip (last) commit for the given ref.
+     *
+     * @param string $refName Name of the reference such as 'master'.
+     * @return string|bool SHA-1 hash of the head commit or FALSE on error.
+     */
     public function getRef($refName)
     {
         $refPath = "$this->mRepoPath/$refName";
@@ -72,6 +106,14 @@ class Repo
         return false;
     }
 
+    /**
+     * Get the HEAD hash of the repository.
+     *
+     * Gives you the hash of the repository's current branch latest
+     * commit (or tip).
+     *
+     * @returns string SHA-1 hash of the object.
+     */
     public function getHead()
     {
         $headRef = file_get_contents($this->mRepoPath . '/HEAD');
@@ -83,22 +125,53 @@ class Repo
         return $this->getRef($headRef);
     }
 
+    /**
+     * Get the HEAD commit of the repository.
+     *
+     * @see Repo::getHead() 
+     * @returns string SHA-1 hash of the object.
+     */
     public function getHeadCommit()
     {
         $headCommit = $this->getHead();
         return Object::Open($this, $headCommit);
     }
-
+    
+    /**
+     * Get a object from the repository
+     *
+     * Retrieve's the object from the Git repository and gives you a instance 
+     * of either Tree, Commit, or Blob depending on the object type.
+     *
+     * @param string $objectHash SHA-1 Hash of the object
+     * @return Tree|Commit|Blob|bool Tree, Commit, or Blob or FALSE on error
+     */
     public function getObject($objectHash)
     {
         return Object::Open($this, $objectHash);
     }
 
+    /**
+     * The full path to the repository.
+     * 
+     * @return string The full path to the repo
+     */
     public function getRepoPath()
     {
         return $this->mRepoPath;
     }
 
+    /**
+     * Open a Git repository.
+     *
+     * Opens a Git repository and returns a Repo object.
+     * 
+     * @param string $Path Path to the git repository. It will automatically add 
+     * the .git subfolder to the path if necessary.    
+     * 
+     * @return Repo Repo object
+     * @throws \Exception
+     */
     public static function Open($Path)
     {
         if( !is_dir($Path) )
@@ -111,6 +184,12 @@ class Repo
         return new Repo($repoPath);
     }
 
+    /**
+     * Check if the given directory is a Git repository
+     *
+     * @param string $Path Path to the directory to check
+     * @return bool Returns TRUE if it is a valid repository
+     */
     public static function isRepository($Path)
     {    
         if( file_exists($Path .  '/HEAD') )
