@@ -89,18 +89,6 @@ class Repo
         return Object::Open($this, $headCommit);
     }
 
-    public function getTree($Hash)
-    {
-        $treeObj = $this->getObject($Hash);
-        if( $treeObj !== false )
-        {
-            if( $treeObj->getObjectType() == Object::TYPE_COMMIT )
-                $treeObj = $treeObj->getTree();
-        }
-
-        return $treeObj;
-    }
-
     public function getObject($objectHash)
     {
         return Object::Open($this, $objectHash);
