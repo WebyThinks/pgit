@@ -9,7 +9,6 @@
  * Contains the Repo implementation
  */
 
-
 namespace PGit;
 
 require_once('Binary.php');

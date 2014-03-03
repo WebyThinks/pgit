@@ -4,28 +4,96 @@
 *   http://github.com/zordtk/pgit                            *
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
+
+/**
+ * Contains the Object base class implementation
+ */
+
 namespace PGit;
 
+/** 
+ * Represents a generic Git Object
+ *
+ * Object is the base class for all of Git's objects. Tree, Commit, and Blob 
+ * extend the Object class to add parsing for each type.
+ */
 class Object
 {
+    /**
+     * Git Commit Object
+     */
     const TYPE_COMMIT       = 1;
+
+    /**
+     * Git Tree Object
+     */
     const TYPE_TREE         = 2;
+
+    /**
+     * Git Blob Object
+     */
     const TYPE_BLOB         = 3;
+
+    /**
+     * Git Tag Object
+     */
     const TYPE_TAG          = 4;
+
+    /**
+     * Git OFS Delta Object
+     */
     const TYPE_OFS_DELTA    = 6;
+
+    /**
+     * Git Ref Delta Object
+     */
     const TYPE_REF_DELTA    = 7;
     
+    /** 
+     * @var Repo $mRepo Instance of the current Repo class
+     */
     protected $mRepo;
+
+    /**
+     * @var string $mData The uncompresed object data
+     */
     protected $mData;
+
+    /**
+     * @var string $mObjectType The type of the object TYPE_COMMIT, TYPE_TREE. TYPE_BLOB, 
+     * TYPE_TAG, TYPE_OFS_DELTA,or TYPE_REF_DELTA
+     */
     protected $mObjectType;
+
+    /**
+     * @var string $mObjectHash The SHA-1 Hash of the object
+     */
     protected $mObjectHash;
 
+    /**
+     * Create the object
+     *
+     * @param Repo $Repo Instance of the Repo class
+     * @param string $Data The object's data
+     */
     public function __construct($Repo, $Data)
     {
         $this->mRepo = $Repo;
         $this->mData = $Data;
     }
 
+    /**
+     * Open a object
+     *
+     * Get $objectHash object from the given $Repo, parses it and gives
+     * you one of either: Tree, Commit, or Blob depending on the object's type.
+     *
+     * @param Repo $Repo The repo class
+     * @param string $objectHash The object to fetch
+     * @throws \Exception On invalid type
+     * @throws InvalidHash
+     * @return Tree|Commit|Blob The object
+     */
     public static function Open($Repo, $objectHash)
     {
         if( empty($objectHash) )
@@ -84,6 +152,14 @@ class Object
         return false;
     }
 
+    /**
+     * Verify the pack
+     * 
+     * Verifies that the SHA-1 hash matches the file's actual hash value.
+     * @param Repo $Repo The repo class
+     * @param string $Pack The pack's filename
+     * @return bool
+     */
     private static function verifyPackFile($Repo, $Pack)
     {
         $fpPack = fopen($Repo->getRepoPath() . '/objects/pack/pack-' . $Pack['fileName'] . '.pack', 'rb');
@@ -102,6 +178,18 @@ class Object
         return false;
     }
     
+    /**
+     * Read Compressed Data from the pack
+     *
+     * Reads compressed data from the pack when you do not know the size of the compressed data,
+     * only what size it is uncompressed. To do this it first reads the size of it uncompressed plus
+     * 32 Bytes. Then it attempts to decompress the object, if it fails it reads another 32 Bytes and 
+     * tries decompressing again.
+     * 
+     * @param resource $fpPack The pack's file handle
+     * @param string $uncompressedSize The size of the data uncompressed.
+     * @return string The uncompressed data
+     */
     private static function readCompressedData($fpPack, $uncompressedSize)
     {
         // Git stores the size of the uncompressed data, not the compressed size.
@@ -118,6 +206,17 @@ class Object
         return $uncompressedData;
     }
 
+    /**
+     * Unpack Object
+     * 
+     * @param Repo $Repo The repo class
+     * @param string $packName The SHA-1 hash of the pack file
+     * @param int $Offset Where the object is located
+     * @return Commit|Tree|Blob
+     * @throws InvalidObject
+     * @throws InvalidHash
+     * @throws \Exception
+     */
     private static function unpackObject($Repo, $packName, $Offset)
     {
         $fpPack = fopen($Repo->getRepoPath() . "/objects/pack/pack-$packName.pack", 'rb');
@@ -185,11 +284,26 @@ class Object
         return $Object;
     }
 
+    /**
+     * Verify the hash
+     *
+     * @return bool
+     */
     public function Verify()
     {
 
     }
 
+    /**
+     * Find packed object
+     *
+     * Find which pack file a object is located in by searching the pack's index
+     *
+     * @param Repo $Repo The repo class
+     * @param string $objectHash The hash of the object to find
+     * @return string[] Array containing the pack name, object offset, and the object hash.
+     * @throws InvalidHash
+     */
     private static function findPackedObject($Repo, $objectHash)
     {
         $packFiles = $Repo->getPackFiles();
@@ -241,10 +355,20 @@ class Object
         return false;
     }
 
-    // This function is based on Patrik Fimml's code from glip
-    // All credit goes to him
+    /**
+     * Read Fanout table
+     *
+     * Read pack indexes fanout table to find the object's location range.
+     *
+     * @param resource $fp Pack indexes file handle
+     * @param string $objectHash SHA-1 hash of the object to locate
+     * @param int $Offset The offset to start searching at
+     * @return string[] Array containing the object's location range
+     */
     private static function readFanout($fp, $objectHash, $Offset)
     {
+        // This function is based on Patrik Fimml's code from glip
+        // All credit goes to him
         $objectHash = sha1bin($objectHash);
 
         if( $objectHash[0] == "\x00" )
@@ -263,6 +387,13 @@ class Object
         return array($curr, $after);
     }
 
+    /**
+     * Apply Delta 
+     *
+     * Apply delta encoding to the object
+     * @param string $Delta The delta to apply
+     * @link http://en.wikipedia.org/wiki/Delta_encoding
+     */
     protected function applyDelta($Delta)
     {
         $Pos        = 0;
@@ -301,11 +432,19 @@ class Object
         $this->mData = $newData;
     }
 
+    /**
+     * Get Object Hash
+     * @return string SHA-1 Hash of the object
+     */
     public function getObjectHash()
     {
         return $this->mObjectHash;
     }
 
+    /**
+     * Get Object Type
+     * @return string SHA-1 Hash of the object
+     */
     public function getObjectType()
     {
         return $this->mObjectType;

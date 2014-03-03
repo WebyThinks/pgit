@@ -4,7 +4,6 @@ TODO
 Below is a general list of the things I plan to implement in PGit. This list is not in any sort of order, it mostly depends on what I'm interested in at the time.
 
 ### Current TODO
- * Document all of the API for phpDocumentor.
  * Add support for reading tags.
  * Add samples to show how to use the API.
  * Implement ref deltas.

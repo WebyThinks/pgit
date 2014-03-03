@@ -5,12 +5,30 @@
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
 
+/**
+ * Contains the Tree object implementation
+ */
+
 namespace PGit;
 
+/**
+ * Represents a Git Tree object.
+ */
 class Tree extends Object
 {
+    /**
+     * The un-parsed tree object data.
+     */
     private $mEntryData;
 
+    /**
+     * Parses tree object's data into a usable format.
+     *
+     * @param Repo $Repo Instance of the Repo object
+     * @param string $Data Tree object data
+     * @param bool $isFromPack Did the data come from a pack or a raw object
+     * @throw InvalidObject
+     */
     public function __construct($Repo, $Data, $isFromPack)
     {
         $this->mObjectType = Object::TYPE_TREE;
@@ -36,6 +54,11 @@ class Tree extends Object
         $this->parseTreeEntries();
     }
 
+    /**
+     * Apply a delta to the object
+     * @see Object::applyDelta
+     * @param string $Delta The delta to apply
+     */
     public function applyDelta($Delta)
     {
         parent::applyDelta($Delta);
@@ -43,6 +66,9 @@ class Tree extends Object
         $this->parseTreeEntries();
     }
 
+    /**
+     * Parses the tree object's data into a usable format.
+     */
     private function parseTreeEntries()
     {
         $this->mEntries = array();
@@ -75,6 +101,10 @@ class Tree extends Object
         unset($this->mEntryData);
     }
 
+    /**
+     * Get the parsed tree entries
+     * @return string[] An array containing the tree's entries
+     */
     public function getTreeEntries()
     {
         return $this->mEntries;
