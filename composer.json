@@ -1,0 +1,27 @@
+{
+    "name": "pgit/pgit",
+    "type": "library",
+    "description": "PGit is a Git implementation written in pure PHP 5",
+    "keywords": [
+        "git",
+        "php",
+        "library"
+    ],
+    "homepage": "http://github.com/zordtk/pgit",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jeremy Harmon",
+            "email": "jeremy.harmon@zoho.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0"
+    },
+    "autoload": {
+        "files": [
+            "autoload.php"
+        ]
+    }
+}
