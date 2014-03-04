@@ -5,42 +5,21 @@
 *   Written By Jeremy Harmon <jeremy.harmon@zoho.com>        *
 \************************************************************/
 
-function autoLoadPGit($Class)
+function autoLoadPGit($className)
 {
-	switch( $Class )
-	{
-		case 'PGit\Blob':
-			require_once(__DIR__ . '/pgit/Blob.php');
-		break;
-		
-		case 'PGit\Commit':
-			require_once(__DIR__ . '/pgit/Commit.php');
-		break;
-		
-		case 'PGit\Object':
-			require_once(__DIR__ . '/pgit/Object.php');
-		break;
-		
-		case 'PGit\Repo':
-			require_once(__DIR__ . '/pgit/Repo.php');
-		break;
-		
-		case 'PGit\SHA':
-			require_once(__DIR__ . '/pgit/SHA.php');
-		break;
-		
-		case 'PGit\Tree':
-			require_once(__DIR__ . '/pgit/Tree.php');
-		break;
-
-        case 'PGit\InvalidHash':
-            require_once(__DIR__ . '/pgit/Error.php');
-        break;
-
-        case 'PGit\InvalidObject':
-            require_once(__DIR__ . '/pgit/Error.php');
-        break;
-	}
+    // We only care about classes in the PGit namespace:
+    if( substr($className, 0, 5) == "PGit\\" )
+    {
+        $actualClassName    = substr($className, 5);
+        $classPath          = __DIR__ . "/pgit/$actualClassName.php";
+        if( file_exists($classPath) )
+        {
+            require_once($classPath);
+            return;
+        }
+        
+        die('Error: Can\'t load ' . htmlspecialchars($className));
+    }
 }
 
 spl_autoload_register('autoLoadPGit');
