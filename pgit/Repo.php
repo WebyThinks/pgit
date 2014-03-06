@@ -65,12 +65,12 @@ class Repo
     /**
      * Get the tip (last) commit for the given ref.
      *
-     * @param string $refName Name of the reference such as 'master'.
+     * @param string $refName Name of the reference such as 'refs/heads/master'.
      * @return string|bool SHA-1 hash of the head commit or FALSE on error.
      */
     public function getRef($refName)
     {
-        $refPath = "$this->mRepoPath/refs/heads/$refName";
+        $refPath = "$this->mRepoPath/$refName";
 
         if( file_exists($refPath) )
         {
