@@ -70,7 +70,7 @@ class Repo
      */
     public function getRef($refName)
     {
-        $refPath = "$this->mRepoPath/$refName";
+        $refPath = "$this->mRepoPath/refs/heads/$refName";
 
         if( file_exists($refPath) )
         {
