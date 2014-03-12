@@ -77,6 +77,14 @@ class PGitTreeTest extends \PHPUnit_Framework_TestCase
                                                                      'type' => 2
                                                                     )));
     }
+
+    public function testTreeFind()
+    {
+        $r = Repo::Open(__DIR__ . '/testRepo');
+        $tree = $r->getHeadCommit()->getTree();
+        $this->assertEquals($tree->Find('gui/lib/index.tcl')->getBlobHash(), '2a294220b93638ee5378fc4851db98dab23ab002');
+        $this->assertEquals($tree->Find('gui/lib/')->getObjectType(), Object::TYPE_TREE);
+    }
 }
 
 ?>

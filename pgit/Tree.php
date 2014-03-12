@@ -109,6 +109,53 @@ class Tree extends Object
     {
         return $this->mEntries;
     }
+
+    /**
+     * Find the object the path points to.
+     * 
+     * @param string $Path The path of the git object you wish to find.
+     * @return Tree,Blob,bool Returns the git object of FALSE on error
+     */
+    public function Find($Path)
+    {
+        if( !is_array($Path) )
+            $Path = explode('/', $Path);
+
+        while( $Path && !$Path[0] )
+            array_shift($Path);
+
+        if( !$Path )    
+            return $this;
+
+        $Found = false;
+        $Entry = null;
+        foreach( $this->mEntries as $Entry )
+        {
+            if( $Entry['name'] == $Path[0] )
+            {
+                $Found = true;
+                break;
+            }
+        }
+
+        if( !$Found )
+            return false;
+
+        array_shift($Path);
+        
+        while( $Path && !$Path[0] )
+            array_shift($Path);
+
+        if( !$Path )
+        {
+            return $this->mRepo->getObject($Entry['hash']);
+        }
+        else
+        {
+            $Object = $this->mRepo->getObject($Entry['hash']);
+            return $Object->Find($Path);
+        }
+    }
 }
 
 ?>
