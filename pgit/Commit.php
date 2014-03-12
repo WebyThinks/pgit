@@ -124,7 +124,7 @@ class Commit extends Object
         for( $i=0; $i<count($Lines); $i++ )
         {
             if( empty($Lines[$i]) )
-                break;
+                continue;
             else
             {
                 $Pos    = strpos($Lines[$i], ' ');
@@ -169,8 +169,9 @@ class Commit extends Object
                 }
             }
         }
-
-        $this->mMessage = implode(array_slice($Lines, 5, count($Lines) - 6), "\n");
+        
+        $messageStart   = count($this->mParentHashes) + 4;
+        $this->mMessage = implode(array_slice($Lines, $messageStart, count($Lines) - $messageStart - 1), "\n");
         unset($this->mCommitData);
     }
 
