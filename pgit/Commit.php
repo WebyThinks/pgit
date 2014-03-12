@@ -66,6 +66,8 @@ class Commit extends Object
      */
     private $mCommitData;
 
+    private $mHistory = null;
+
     /**
      * Parses a commit object
      *
@@ -260,6 +262,48 @@ class Commit extends Object
     public function getMessage()
     {
         return $this->mMessage;
+    }
+
+    /**
+     * Get the history of all of the commits parents.
+     *
+     * @return array Array of Commit objects
+     */
+    public function getHistory()
+    {
+        if( $this->mHistory != null )
+            return $this->mHistory;
+
+        $inc    = array();
+        $Hashes = array($this);
+        while( ($Commit = array_shift($Hashes)) !== NULL )
+        {
+            foreach( $Commit->mParentHashes as $Parent )
+            {
+                if( !isset($inc[$Parent]) )
+                {
+                    $inc[$Parent] = 1;
+                    $Hashes[] = $this->mRepo->getObject($Parent);
+                }
+                else
+                    $inc[$Parent]++;
+            }
+        }
+
+        $Hashes     = array($this);
+        $History    = array();
+
+        while( ($Commit = array_pop($Hashes)) !== NULL )
+        {
+            array_unshift($History, $Commit);
+            foreach( $Commit->mParentHashes as $Parent )
+            {
+                if( --$inc[$Parent] == 0 )
+                    $Hashes[] = $this->mRepo->getObject($Parent);
+            }
+        }
+
+        return $History;
     }
 }
 
