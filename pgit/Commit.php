@@ -171,7 +171,7 @@ class Commit extends Object
         }
         
         $messageStart   = count($this->mParentHashes) + 4;
-        $this->mMessage = implode(array_slice($Lines, $messageStart, count($Lines) - $messageStart - 1), "\n");
+        $this->mMessage = trim(implode(array_slice($Lines, $messageStart, count($Lines) - $messageStart), "\n"));
         unset($this->mCommitData);
     }
 
